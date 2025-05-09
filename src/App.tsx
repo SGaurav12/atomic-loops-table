@@ -75,7 +75,6 @@ const columns : ColumnDef<Post>[] = [
 ]
 
 
-
 function App() {
 
   const [loading, setLoading] = useState(false);
