@@ -7,26 +7,13 @@ import {
   TableRow,
   TableCaption,
 } from './ui/table';
+import { flexRender, type Table as ReactTable } from '@tanstack/react-table';
 
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  type ColumnDef,
-} from '@tanstack/react-table';
-
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface DataTableProps<TData> {
+  table: ReactTable<TData>;
 }
 
-function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
+function DataTable<TData>({ table }: DataTableProps<TData>) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -35,7 +22,7 @@ function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValu
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead key={header.id} className="text-left px-4 py-2">
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -49,7 +36,7 @@ function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValu
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="px-4 py-2">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -57,7 +44,7 @@ function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValu
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="text-center">
+              <TableCell colSpan={table.getAllColumns().length} className="text-center">
                 No results.
               </TableCell>
             </TableRow>
