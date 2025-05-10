@@ -1,10 +1,14 @@
 import './App.css'
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useReactTable, getCoreRowModel, getPaginationRowModel } from '@tanstack/react-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import DataTable from './components/data-table';
 import { Button } from './components/ui/button';
 import { ArrowUpDown } from 'lucide-react';
+
+import PaginationControls from './components/pagination-controls';
+import ColumnVisibility from './components/column-visibility';
+import { useData } from './hooks/useData';
 
 type Product = {
   id: number;
@@ -58,46 +62,15 @@ const columns: ColumnDef<Product>[] = [
 ];
 
 function App() {
-  const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
   const [sorting, setSorting] = useState<Sort[]>([]);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
+  const [columnVisibility, setColumnVisibility] = useState({});
 
-        const response = await fetch(
-          `https://dummyjson.com/products?limit=${pagination.pageSize}&skip=${pagination.pageIndex * pagination.pageSize}`
-        );
-        const data = await response.json();
-
-        const sortedProducts = [...data.products];
-        if (sorting.length > 0) {
-          const { id, desc } = sorting[0];
-          sortedProducts.sort((a, b) => {
-            if (a[id as keyof Product] < b[id as keyof Product]) return desc ? 1 : -1;
-            if (a[id as keyof Product] > b[id as keyof Product]) return desc ? -1 : 1;
-            return 0;
-          });
-        }
-
-        setProducts(sortedProducts);
-        setTotalCount(data.total);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [pagination.pageIndex, pagination.pageSize, sorting]);
+    const { products, totalCount, loading } = useData(pagination, sorting);
 
   const table = useReactTable({
     columns,
@@ -110,9 +83,11 @@ function App() {
     state: {
       pagination,
       sorting,
+      columnVisibility
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
     autoResetPageIndex: false,
   });
 
@@ -122,31 +97,12 @@ function App() {
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable table={table} />
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
-          {'<<'}
-        </Button>
-        <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          {'<'}
-        </Button>
-        <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          {'>'}
-        </Button>
-        <Button onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
-          {'>>'}
-        </Button>
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => table.setPageSize(Number(e.target.value))}
-        >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              {pageSize}
-            </option>
-          ))}
-        </select>
+      <div className="flex justify-end mb-4">
+        <ColumnVisibility table={table}/>
       </div>
+
+      <DataTable table={table} />
+      <PaginationControls table={table}/>
     </div>
   );
 }
