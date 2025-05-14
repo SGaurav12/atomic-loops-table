@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { Product, Sort } from '@/types';
 
 type Pagination = {
@@ -6,15 +6,40 @@ type Pagination = {
   pageSize: number;
 };
 
-export const useData = (pagination: Pagination, sorting: Sort[]) => {
+export const useData = (pagination: Pagination, sorting: Sort[], searchQuery: string) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  //using ref hook to get last query and prevent duplicate request in console.
+  const lastQueryRef = useRef<string>("");
+
   useEffect(() => {
+     const queryKey = JSON.stringify({ pagination, sorting, searchQuery });
+
+    if (queryKey === lastQueryRef.current) {
+      return;
+    }
+
+    lastQueryRef.current = queryKey;
+
     const fetchData = async () => {
-      setLoading(true);
-      const res = await fetch(`https://dummyjson.com/products?limit=${pagination.pageSize}&skip=${pagination.pageIndex * pagination.pageSize}`);
+      try {
+        setLoading(true);
+
+      const baseUrl = "https://dummyjson.com/products";
+      const limit = pagination.pageSize;
+      const skip = pagination.pageIndex * pagination.pageSize;
+
+      let url = "";
+
+      if (searchQuery.trim()) {
+        url = `${baseUrl}/search?q=${encodeURIComponent(searchQuery)}&limit=${limit}&skip=${skip}`;
+      } else {
+        url = `${baseUrl}?limit=${limit}&skip=${skip}`;
+      }
+
+      const res = await fetch(url);
       const data = await res.json();
 
       const sorted = [...data.products];
@@ -25,11 +50,16 @@ export const useData = (pagination: Pagination, sorting: Sort[]) => {
 
       setProducts(sorted);
       setTotalCount(data.total);
+      } catch (error) {
+        console.log(error);
+      } finally {
       setLoading(false);
+    }
     };
 
     fetchData();
-  }, [pagination, sorting]);
+
+  }, [pagination, sorting, searchQuery]);
 
   return { products, totalCount, loading };
 };
