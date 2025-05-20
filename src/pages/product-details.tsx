@@ -1,63 +1,49 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Tag, Store, Star, Package } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import Skeleton from 'react-loading-skeleton';
+import { getEditedProduct } from '@/utils/localStorageUtils';
+import { type ProductDetails } from '@/types';
 
-interface Review {
-  rating: number;
-  comment: string;
-  date: string;
-  reviewerName: string;
-  reviewerEmail: string;
-}
-
-interface Product {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  discountPercentage: number;
-  rating: number;
-  stock: number;
-  brand: string;
-  category: string;
-  thumbnail: string;
-  images: string[];
-  reviews?: Review[]; // Optional in case not every product has it
-  returnPolicy?: string;
-  minimumOrderQuantity?: number;
-  meta?: {
-    createdAt: string;
-    updatedAt: string;
-    barcode: string;
-  };
-}
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const [product, setProduct] = useState<ProductDetails | null>(
+    location.state || null
+  );
+  const [loading, setLoading] = useState(!location.state);
   const [error, setError] = useState<string | null>(null);
 
-
   useEffect(() => {
+    if (product) return; // skip fetch if already have product data
+
+    // Try loading from localStorage first
+    const localProduct = getEditedProduct(id!);
+    if (localProduct) {
+      setProduct(localProduct);
+      setLoading(false);
+      return;
+    }
+
+    // fallback to fetch from API
     const fetchProduct = async () => {
       try {
         const res = await fetch(`https://dummyjson.com/products/${id}`);
-        if (!res.ok) throw new Error('Product not found');
+        if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
         setProduct(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch product');
+        setError(err instanceof Error ? err.message : "Failed to fetch product");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, location.state]);
 
   if (loading) {
     return (
@@ -146,7 +132,7 @@ export default function ProductDetails() {
             )}
           </div>
         </article>
-        </div>
       </div>
+    </div>
   );
 }
