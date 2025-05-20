@@ -4,29 +4,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useEffect } from "react";
-
-const editProductSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  price: z.coerce.number().min(1, "Price must be at least 1"),
-  brand: z.string().min(1, "Brand is required"),
-});
+import { editProductSchema } from "@/schema";
+import { useEditProductDialogState } from "@/store/edit-product-state";
 
 export type EditProductData = z.infer<typeof editProductSchema>;
 
-interface EditProductDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSave: (data: EditProductData) => void;
-  initialData: EditProductData | null;
-}
+export function EditProductDialog() {
+  const {
+    open,
+    setOpen,
+    initialData,
+    setInitialData,
+    close,
+  } = useEditProductDialogState();
 
-export function EditProductDialog({
-  open,
-  onClose,
-  onSave,
-  initialData,
-}: EditProductDialogProps) {
   const {
     register,
     handleSubmit,
@@ -38,14 +29,26 @@ export function EditProductDialog({
   });
 
   // Reset form when the dialog opens
-   useEffect(() => {
-    if(initialData) {
+  useEffect(() => {
+    if (initialData) {
       reset(initialData);
     }
   }, [initialData, reset]);
 
+  const onSave = (data: EditProductData) => {
+
+    console.log("Saving product data:", data);
+    // Here you would typically send the data to your API or state management
+    try {
+      close();
+      setInitialData(null); // Clear initial data after saving
+    } catch (error) {
+      console.error("Error saving product:", error);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
@@ -80,17 +83,8 @@ export function EditProductDialog({
             {errors.price && <p className="text-sm text-red-500">{errors.price.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Brand</label>
-            <input
-              {...register("brand")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.brand && <p className="text-sm text-red-500">{errors.brand.message}</p>}
-          </div>
-
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={close}>
               Cancel
             </Button>
             <Button type="submit">Save Changes</Button>
