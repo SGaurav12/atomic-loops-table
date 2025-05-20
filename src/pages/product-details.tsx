@@ -1,21 +1,26 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ArrowLeft, Tag, Store, Star, Package } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import Skeleton from 'react-loading-skeleton';
 import { getEditedProduct } from '@/utils/localStorageUtils';
 import { type ProductDetails } from '@/types';
+import { useProductDetailsState } from '@/store/product-details-state';
 
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [product, setProduct] = useState<ProductDetails | null>(
-    location.state || null
-  );
-  const [loading, setLoading] = useState(!location.state);
-  const [error, setError] = useState<string | null>(null);
+ const {
+    product,
+    setProduct,
+    loading,
+    setLoading,
+    error,
+    setError,
+    reset,
+  } = useProductDetailsState();
 
   useEffect(() => {
     if (product) return; // skip fetch if already have product data
@@ -43,6 +48,11 @@ export default function ProductDetails() {
     };
 
     fetchProduct();
+
+    return () => {
+      reset(); // Reset state on unmount
+    };
+  
   }, [id, location.state]);
 
   if (loading) {
