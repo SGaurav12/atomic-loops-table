@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { useAuthState } from "@/store/auth-state";
+import { set, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schema"; // update the path if needed
 import type { z } from "zod";
@@ -15,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 import {
   Form,
@@ -39,17 +39,33 @@ export function LoginForm({
     },
   });
 
+
   const { login } = useAuth();
   const navigate = useNavigate();
-    const [error, setError] = useState("");
+ const {
+  loading, setLoading,
+  error, setError,
+  setIsAuthenticated,
+  setUser,
+  setToken,
+} = useAuthState();
+
 
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      await login(data.email, data.password);
+      const result = await login(data.email, data.password);
+      setIsAuthenticated(true);
+      setUser({ email: data.email });
+      setToken(result.token); // or whatever your login returns
       navigate("/");
     } catch (err) {
       setError("Invalid email or password");
+      setIsAuthenticated(false);
+      setUser(null);
+      setToken("");
+    } finally {
+      setLoading(false);
     }
   };
 
