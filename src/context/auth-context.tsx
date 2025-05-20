@@ -7,7 +7,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ token: string; user: User }>;
   logout: () => void;
 }
 
@@ -35,8 +35,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
+
+      return { token, user: userData };
     } else {
-      alert("Invalid email or password");
+      throw new Error("Invalid email or password");
     }
   };
 
