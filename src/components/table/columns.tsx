@@ -1,37 +1,25 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuContent } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-
-export type Product = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  brand: string;
-};
+import type { Product } from "@/types";
+import { SortingPopover } from "./sorting-popover";
 
 interface CreateColumnsProps {
-  onEdit: (product: Product) => void;
+  onEdit: (id: number) => void;
   onView: (id: number) => void;
 }
 
-export function createColumns({ onEdit, onView }: CreateColumnsProps): ColumnDef<Product>[] { 
+export function createColumns({ onView }: CreateColumnsProps): ColumnDef<Product>[] { 
   return [
   {
     accessorKey: "id",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        ID <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
+      <SortingPopover column={column} label="ID" />
     ),
   },
   {
     accessorKey: "title",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Title <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
+      <SortingPopover column={column} label="Title" sortType="alphabetical"  />
     ),
   },
   {
@@ -47,38 +35,13 @@ export function createColumns({ onEdit, onView }: CreateColumnsProps): ColumnDef
     accessorKey: "price",
     header: "Price ($)",
   },
-  {
-      id: "actions",
+   {
+      header: "Actions",
       cell: ({ row }) => {
-        const product = row.original;
-
+        const id = row.original.id;
         return (
-          <div className="relative">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-8 w-8 p-0 hover:bg-muted"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => onView(product.id)}
-                >
-                  View details
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    onEdit(product)
-                  }}
-                >
-                  Edit
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => onView(id)}>View</Button>
           </div>
         );
       },

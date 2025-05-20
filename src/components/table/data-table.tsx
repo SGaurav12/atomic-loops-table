@@ -8,27 +8,23 @@ import {
 } from "../ui/table";
 import { flexRender, type Table as ReactTable } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { Button } from "../ui/button";
 
 interface DataTableProps<TData> {
   table: ReactTable<TData>;
+  onEdit?: (id: number) => void;
 }
 
 function DataTable<TData extends { id: number }>({
   table,
+  onEdit
 }: DataTableProps<TData>) {
   const navigate = useNavigate();
-  const lastNavigatedRef = useRef<number | null>(null);
 
   const handleRowClick = (row: TData) => {
-    if (lastNavigatedRef.current === row.id) return;
+ 
+    navigate(`/products/${row.id}`, { state: row });
 
-    lastNavigatedRef.current = row.id;
-    navigate(`/products/${row.id}`);
-
-    setTimeout(() => {
-      lastNavigatedRef.current = null;
-    }, 500);
   };
 
   return (
@@ -71,6 +67,20 @@ function DataTable<TData extends { id: number }>({
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
+
+                {onEdit && (
+                  <TableCell className="px-4 py-3 text-sm">
+                    <Button
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent row click
+                        onEdit(row.original.id);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             ))
           ) : (

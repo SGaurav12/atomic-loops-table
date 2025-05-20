@@ -19,7 +19,7 @@ function ColumnVisibility<TData> ({table}: DataTableProps<TData>) {
     <DropdownMenuTrigger asChild>
       <Button variant="outline">Columns Visibility</Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent className="w-48">
+    <DropdownMenuContent className="w-48 z-50" side="bottom" align="end">
       {table.getAllLeafColumns().map((column) => (
         <DropdownMenuCheckboxItem
           key={column.id}

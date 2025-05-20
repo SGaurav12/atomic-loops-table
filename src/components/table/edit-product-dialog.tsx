@@ -39,7 +39,7 @@ export function EditProductDialog({
 
   // Reset form when the dialog opens
    useEffect(() => {
-    if (initialData) {
+    if(initialData) {
       reset(initialData);
     }
   }, [initialData, reset]);
