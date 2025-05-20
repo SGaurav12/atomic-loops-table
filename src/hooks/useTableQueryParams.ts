@@ -9,9 +9,14 @@ interface Sort {
 export function useTableQueryParams() {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const parseNumberOrDefault = (val: string | null, defaultVal: number) => {
+  const parsed = parseInt(val ?? "");
+  return Number.isNaN(parsed) ? defaultVal : parsed;
+};
+
   const [pagination, setPagination] = useState({ //local states for pagination such as for index and page size
-    pageIndex: parseInt(searchParams.get("page") || "0"),
-    pageSize: parseInt(searchParams.get("size") || "10"),
+     pageIndex: parseNumberOrDefault(searchParams.get("page"), 0),
+  pageSize: parseNumberOrDefault(searchParams.get("size"), 10),
   });
 
   const [sorting, setSorting] = useState<Sort[]>(() => { //local state for sorting column and order
