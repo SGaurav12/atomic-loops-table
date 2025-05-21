@@ -1,12 +1,18 @@
-export const generateJWT = (email: string): string => {
-  const tokenPayload = {
-    email,
-    exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiry
-  };
-  return btoa(JSON.stringify(tokenPayload)); // Fake token (in real-world use `jsonwebtoken`)
-};
+import { jwtDecode } from "jwt-decode";
 
-export function isAuthenticated(): boolean {
-  const token = localStorage.getItem("token");
-  return !!token;
+interface JwtPayload {
+  exp?: number;
+  [key: string]: any;
 }
+
+export const isTokenExpired = (token: string | null | undefined): boolean => {
+  if (!token) return true;
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    if (!decoded.exp) return true; // If no exp, treat as expired
+    return decoded.exp * 1000 < Date.now(); // exp is in seconds, Date.now() in ms
+  } catch (error) {
+    console.error("Failed to decode token:", error);
+    return true; // Assume expired if decoding fails
+  }
+};
