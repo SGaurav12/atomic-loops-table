@@ -1,5 +1,4 @@
-import { useAuthState } from "@/store/auth-state";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema } from "@/schema"; // update the path if needed
 import type { z } from "zod";
@@ -24,6 +23,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { useState } from "react";
 
 type LoginFormValues = z.infer<typeof LoginSchema>;
 
@@ -39,31 +39,19 @@ export function LoginForm({
     },
   });
 
-
   const { login } = useAuth();
   const navigate = useNavigate();
- const {
-  loading, setLoading,
-  error, setError,
-  setIsAuthenticated,
-  setUser,
-  setToken,
-} = useAuthState();
-
-
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: LoginFormValues) => {
+    setLoading(true);
+    setError(null);
     try {
       const result = await login(data.email, data.password);
-      setIsAuthenticated(true);
-      setUser({ email: data.email });
-      setToken(result.token); // or whatever your login returns
       navigate("/");
     } catch (err) {
       setError("Invalid email or password");
-      setIsAuthenticated(false);
-      setUser(null);
-      setToken("");
     } finally {
       setLoading(false);
     }
@@ -83,7 +71,7 @@ export function LoginForm({
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {error && <p className="text-red-500">{error}</p>}
+                  {error && <p className="text-red-500">{error}</p>}
 
                   <FormField
                     control={form.control}
@@ -124,9 +112,8 @@ export function LoginForm({
                       </FormItem>
                     )}
                   />
-
-                  <Button type="submit" className="w-full">
-                    Login
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
                 </form>
               </Form>
