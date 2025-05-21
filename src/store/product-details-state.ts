@@ -1,26 +1,34 @@
 import { hookstate, useHookstate } from "@hookstate/core";
 import type { ProductDetails } from "@/types";
 
-export const productDetailsState = hookstate({
+const initialState = {
   product: null as ProductDetails | null,
   loading: false,
-  error: "" as string | null,
-});
+  error: null as string | null,
+};
+
+const globalState = hookstate(initialState);
 
 export function useProductDetailsState() {
-  const state = useHookstate(productDetailsState);
+  const state = useHookstate(globalState);
+
+
+  console.log("Hookstate Raw State:", state);
 
   return {
-    product: state.product.get(),
-    setProduct: (val: ProductDetails | null) => state.product.set(val),
-    loading: state.loading.get(),
-    setLoading: (val: boolean) => state.loading.set(val),
-    error: state.error.get(),
-    setError: (val: string | null) => state.error.set(val),
+    product: state.product?.get?.() ?? null,
+    setProduct: (val: ProductDetails | null) => state.product?.set?.(val),
+
+    loading: state.loading?.get?.() ?? false,
+    setLoading: (val: boolean) => state.loading?.set?.(val),
+
+    error: state.error?.get?.() ?? null,
+    setError: (val: string | null) => state.error?.set?.(val),
+
     reset: () => {
-      state.product.set(null);
-      state.loading.set(false);
-      state.error.set("");
+      state.product?.set?.(null);
+      state.loading?.set?.(false);
+      state.error?.set?.(null);
     },
   };
-};
+}
