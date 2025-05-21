@@ -49,6 +49,7 @@ export function LoginForm({
     setError(null);
     try {
       const result = await login(data.email, data.password);
+      console.log("Login result:", result);
       navigate("/");
     } catch (err) {
       setError("Invalid email or password");
